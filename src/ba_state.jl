@@ -50,6 +50,9 @@ end
 LLBAState(ns::Vector{<:Integer}, c::Real, L::Real) = LLBAState(Rational.(ns), c, L)
 LLBAState(ns::Vector{<:Integer}, quasimomenta::Vector{<:AbstractFloat}, c::Real, L::Real) = LLBAState(Rational.(ns), quasimomenta, c, L)
 
+energy(ψ::LLBAState{<:AbstractFloat}, μ::Real) = sum(ψ.quasimomenta .^ 2) - μ * length(ψ.ns)
+momentum(ψ::LLBAState{<:AbstractFloat}) = sum(ψ.quasimomenta) 
+
 """
     theta(λ1::Real, λ2::Real, c::Real)
 
@@ -129,5 +132,3 @@ function ph_excitation(ψ::LLBAState{<:AbstractFloat}, qLs::Vector{<:Integer}, q
     return update_state(ψ, ns)
 end
 
-energy(ψ::LLBAState{<:AbstractFloat}, μ::Real) = sum(ψ.quasimomenta .^ 2) - μ * length(ψ.ns)
-momentum(ψ::LLBAState{<:AbstractFloat}) = sum(ψ.quasimomenta) 

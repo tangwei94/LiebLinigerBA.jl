@@ -6,10 +6,10 @@ __precompile__(true)
 using LinearAlgebra
 
 export  LLBAState,
-        update_state, 
-        ph_excitation,
         energy,
-        momentum
+        momentum,
+        update_state, 
+        ph_excitation
 
 export  ground_state, 
         get_mu,
