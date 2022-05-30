@@ -19,6 +19,7 @@ for n in 1:5
 end
 
 μ = (energy(ψps[1], 0) - energy(ψms[1], 0)) / 2
+@show μ
 Egs = energy(ψ0, μ)
 
 ph_actions = [[0], [-1], [-2], [-1, -1]];
