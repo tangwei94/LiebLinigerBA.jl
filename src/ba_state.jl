@@ -132,3 +132,84 @@ function ph_excitation(ψ::LLBAState{<:AbstractFloat}, qLs::Vector{<:Integer}, q
     return update_state(ψ, ns)
 end
 
+"""
+    gaudin_norm(ψ::LLBAState{<:AbstractFloat})
+
+    Compute the log of the Gaudin norm of a LLBAState. 
+"""
+function gaudin_norm(ψ::LLBAState{<:AbstractFloat})
+    λs = ψ.quasimomenta
+    c, L = ψ.c, ψ.L
+    N = length(ψ.ns)
+    Yang_hess = gtheta.(λs', λs, c)
+    Yang_hess += Diagonal(L .* ones(N) - vec(sum(Yang_hess, dims=1)))  
+    result = log(det(Yang_hess)) + N * log(c)
+
+    @show det(Yang_hess) 
+    for k in 1:N
+        for j in (k+1):N
+            λjk = λs[j] - λs[k]
+            result += log((λjk^2 + c^2) / λjk^2)
+        end
+    end
+    return result
+end
+
+"""
+    form_factor of the density operator <{λ}|ψ†(0)ψ(0)|{μ}>
+"""
+function ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0)
+
+    if ψ1.ns == ψ2.ns
+        return log(length(ψ1.ns) / ψ1.L) 
+    end
+
+    λs = ψ1.quasimomenta
+    μs = ψ2.quasimomenta
+    c, N = ψ1.c, length(ψ1.ns)
+
+    Vps = ones(ComplexF64, N)
+    Vms = ones(ComplexF64, N)
+    V0s = ones(Float64, N)
+    for j in 1:N
+        for (λ, μ) in zip(λs, μs)
+            Vps[j] *= (μ - λs[j] + im*c) / (λ - λs[j] + im*c)
+            Vms[j] *= (μ - λs[j] - im*c) / (λ - λs[j] - im*c)
+            if (abs(λ - λs[j]) > 1e-8)
+                V0s[j] *= (μ - λs[j]) / (λ - λs[j])
+            end
+        end
+    end
+
+    Vp_0, Vm_0 = 1, 1
+    for (λ, μ) in zip(λs, μs)
+        Vp_0 *= (μ - p + im*c) / (λ - p + im*c)
+        Vm_0 *= (μ - p - im*c) / (λ - p - im*c)
+    end
+
+    Id_p_U = Matrix{ComplexF64}(I, (N, N))
+    for j in 1:N
+        factor = im * (μs[j] - λs[j]) / (Vps[j] - Vms[j]) * V0s[j]
+        for k in 1:N
+            Id_p_U[j, k] += factor * (gtheta(p, λs[k], c) - gtheta(λs[j], λs[k], c))
+        end
+    end
+
+    result = det(Id_p_U) / (Vp_0 - Vm_0) * sum(μs .- λs) * prod(Vps .- Vms)
+    result_ln_norm = log(norm(result))
+    #result_angle = angle(result)
+
+    for j in 1:N
+        for k in 1:N 
+            term_jk = (λs[j] - λs[k] + im*c) / (μs[j] - λs[k])
+            result_ln_norm += log(norm(term_jk))
+            #result_angle += angle(result)
+        end
+    end
+
+    ln_norm1, ln_norm2 = gaudin_norm(ψ1), gaudin_norm(ψ2)
+    result_ln_norm -= 0.5 * (ln_norm1 + ln_norm2)
+    #phase = exp(im * result_angle)
+
+    return result_ln_norm#, phase
+end
