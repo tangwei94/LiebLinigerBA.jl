@@ -3,4 +3,5 @@
 *.jl.mem
 /docs/build/
 
-tmp.jl
+tmp*.jl
+tmpdata
