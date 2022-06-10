@@ -4,20 +4,24 @@ module LiebLinigerBA
 __precompile__(true)
 
 using LinearAlgebra
-using LogarithmicNumbers
+using Combinatorics
 
 export  LLBAState,
+        ground_state,
         energy,
         momentum,
         update_state, 
         ph_excitation,
-        gaudin_norm, 
-        ρ0_form_factor
+        ln_gaudin_norm, 
+        ln_ρ0_form_factor,
+        ln_I0_form_factor,
+        ψ0_form_factor
 
-export  ground_state, 
-        get_mu,
+export  get_mu,
+        intermediate_states,
         Luttinger_parameter, 
-        twobody_wave_function
+        twobody_wave_function,
+        threebody_wave_function
 
 include("ba_state.jl")
 include("utils.jl")

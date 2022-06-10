@@ -106,6 +106,33 @@ end
 update_state(ψ::LLBAState{T}, ns::Vector{<:Integer}) where T = update_state(ψ, Rational.(ns))
 
 """
+    ground_state(c::Real, L::Real, N::Integer)
+
+    Obtain the ground state in the sector of particle number `N`.
+"""
+function ground_state(c::Real, L::Real, N::Integer)
+    ns = Vector((-N+1:2:N) .// 2)
+    return LLBAState(ns, c, L)
+end
+
+"""
+    ground_state(c::Real, L::Real, nL::Integer, nR::Integer)
+
+    Obtain the ground state in the following sector: 
+    there are `nL` particles in the left branch, and `nR` particles in the right branch.
+    If the total particle number is odd, then `nR` also takes account of the quantum number at zero, i.e. nR (in program) = nR (actual) + 1. 
+"""
+function ground_state(c::Real, L::Real, nL::Integer, nR::Integer)
+    if (nL + nR) % 2 == 1
+        ns = -nL:nR-1
+    else
+        ns = (-nL+1:nR) .- 1//2
+    end
+    
+    return LLBAState(Vector(ns), c, L)
+end
+
+"""
     ph_excitation(ψ::LLBAState{<:AbstractFloat}, qLs::Vector{Integer}, qRs::Vector{Integer}) 
 
     Generate particle-hole excitations on a given state `ψ`. 
@@ -133,11 +160,11 @@ function ph_excitation(ψ::LLBAState{<:AbstractFloat}, qLs::Vector{<:Integer}, q
 end
 
 """
-    gaudin_norm(ψ::LLBAState{<:AbstractFloat})
+    ln_gaudin_norm(ψ::LLBAState{<:AbstractFloat})
 
-    Compute the log of the Gaudin norm of a LLBAState. 
+    Compute the log of the Gaudin norm of a LLBAState `log[sqrt(<ψ|ψ>)]`. 
 """
-function gaudin_norm(ψ::LLBAState{<:AbstractFloat})
+function ln_gaudin_norm(ψ::LLBAState{<:AbstractFloat})
     λs = ψ.quasimomenta
     c, L = ψ.c, ψ.L
     N = length(ψ.ns)
@@ -145,20 +172,26 @@ function gaudin_norm(ψ::LLBAState{<:AbstractFloat})
     Yang_hess += Diagonal(L .* ones(N) - vec(sum(Yang_hess, dims=1)))  
     result = log(det(Yang_hess)) + N * log(c)
 
-    @show det(Yang_hess) 
     for k in 1:N
         for j in (k+1):N
             λjk = λs[j] - λs[k]
             result += log((λjk^2 + c^2) / λjk^2)
         end
     end
-    return result
+    return 0.5*result
 end
 
 """
-    form_factor of the density operator <{λ}|ψ†(0)ψ(0)|{μ}>
+    ln_ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0)
+
+    form_factor of the density operator <ψ1|ψ†(0)ψ(0)|ψ2>. 
+    ψ1 and ψ2 will be normalized.
+    return the log of the norm as well as the total phase.
+    Ref: J. De Nardis, M. Panfil, J. Stat. Mech. 2015, P02019 (2015)
+
+    parameter `p` is a free parameter in the formula which will not affect the result.
 """
-function ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0)
+function ln_ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0)
 
     if ψ1.ns == ψ2.ns
         return log(length(ψ1.ns) / ψ1.L) 
@@ -197,19 +230,186 @@ function ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:Abstr
 
     result = det(Id_p_U) / (Vp_0 - Vm_0) * sum(μs .- λs) * prod(Vps .- Vms)
     result_ln_norm = log(norm(result))
-    #result_angle = angle(result)
+    result_angle = angle(result)
 
     for j in 1:N
         for k in 1:N 
             term_jk = (λs[j] - λs[k] + im*c) / (μs[j] - λs[k])
             result_ln_norm += log(norm(term_jk))
-            #result_angle += angle(result)
+            result_angle += angle(result)
         end
     end
 
-    ln_norm1, ln_norm2 = gaudin_norm(ψ1), gaudin_norm(ψ2)
-    result_ln_norm -= 0.5 * (ln_norm1 + ln_norm2)
-    #phase = exp(im * result_angle)
+    ln_norm1, ln_norm2 = ln_gaudin_norm(ψ1), ln_gaudin_norm(ψ2)
+    result_ln_norm -= ln_norm1 + ln_norm2
+    phase = exp(im * result_angle)
 
-    return result_ln_norm#, phase
+    return result_ln_norm, phase
 end
+
+"""
+    form_factor of the local interaction operator <ψ1|ψ†(0)ψ†(0)ψ(0)ψ(0)|ψ2>. 
+    ψ1 and ψ2 will be normalized.
+    
+    L. Piroli, P. Calabrese, J. Phys. A: Math. Theor. 48, 454002 (2015)
+"""
+function ln_I0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0, s::Real=0)
+    c = ψ1.c
+    N = length(ψ1.ns)
+
+    μs = ψ1.quasimomenta
+    λs = ψ2.quasimomenta
+
+    function fV(λ, vu, vd)
+        result = 1
+        for ix in 1:N 
+            result *= (vu[ix] - λ) / (vd[ix] - λ)
+        end
+        return result
+    end
+    fpV(λ) = fV(λ, μs .+ im*c, λs .+ im*c)
+    fmV(λ) = fV(λ, μs .- im*c, λs .- im*c)
+
+    Vps = [fpV(λ) for λ in λs]
+    Vms = [fmV(λ) for λ in λs]
+    V0s = [fV(λ, λs .- im*c, μs) for λ in λs]
+
+    Id_p_U = Matrix{ComplexF64}(I, (N, N))
+    for j in 1:N
+        factor = im / (Vps[j] - Vms[j]) * fV(λs[j], μs, [λs[1:j-1]; λs[j] + 1; λs[j+1:end]])
+        for k in 1:N
+            Id_p_U[j, k] += factor * (-gtheta(λs[j], λs[k], c) - gtheta(p, λs[k], c) * gtheta(s, λs[j], c))
+        end
+    end
+
+    Pλ, Pμ = sum(λs), sum(μs)
+    Eλ, Eμ = sum(λs .^ 2), sum(μs .^ 2)
+    Qλ, Qμ = sum(λs .^ 3), sum(μs .^ 3)
+    J = (Pλ - Pμ)^4 - 4 * (Pλ - Pμ) * (Qλ - Qμ) + 3 * (Eλ - Eμ)^2
+
+    result = det(Id_p_U) / (fpV(p) - fmV(p)) / (fpV(s) - fmV(s))
+    result_ln_norm = log(norm(result))
+    result_angle = angle(result)
+
+    for j in 1:N
+        vj = (Vps[j] - Vms[j]) * V0s[j]
+        result_ln_norm += log(norm(vj))
+        result_angle += angle(vj)
+    end
+
+    result_ln_norm += log(norm(J/6/c)) - ln_gaudin_norm(ψ1) - ln_gaudin_norm(ψ2)
+
+    return result_ln_norm, exp(im*result_angle) * (-1)^N * sign(J) 
+end
+
+"""
+    form_factor of the field operator <ψ1|ψ(0)|ψ2>. ψ1 and ψ2 will be normalized.
+
+    L. Piroli, P. Calabrese, J. Phys. A: Math. Theor. 48, 454002 (2015)
+"""
+function ψ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0, s::Real=0)
+    c = ψ1.c
+    N = length(ψ1.ns)
+
+    μs = ψ1.quasimomenta
+    λs = ψ2.quasimomenta
+
+    function fV(λ, vu, vd)
+        result = 1
+        for ix in 1:N 
+            result *= (vu[ix] - λ) / (vd[ix] - λ)
+        end
+        result /= (vd[N+1] - λ)
+        return result
+    end
+    fpV(λ) = fV(λ, μs .+ im*c, λs .+ im*c)
+    fmV(λ) = fV(λ, μs .- im*c, λs .- im*c)
+
+    Vps = [fpV(λ) for λ in λs]
+    Vms = [fmV(λ) for λ in λs]
+    V0s = [-1 / fV(λ, μs, λs .- im*c) for λ in λs]
+
+    Id_p_U = Matrix{ComplexF64}(I, (N+1, N+1))
+    for j in 1:N+1
+        factor = im / (Vps[j] - Vms[j]) * fV(λs[j], μs, [λs[1:j-1]; λs[j]+1; λs[j+1:end]])
+        for k in 1:N+1
+            Id_p_U[j, k] += factor * (-gtheta(λs[j], λs[k], c) - gtheta(p, λs[k], c) * gtheta(s, λs[j], c))
+        end
+    end
+
+    result = det(Id_p_U) / (fpV(p) - fmV(p)) / (fpV(s) - fmV(s))
+    result_ln_norm = log(norm(result))
+    result_angle = angle(result)
+
+    for j in 1:N+1
+        vj = (Vps[j] - Vms[j]) * V0s[j]
+        result_ln_norm += log(norm(vj))
+        result_angle += angle(vj)
+    end
+
+    result_ln_norm -= 0.5*log(c) + ln_gaudin_norm(ψ1) + ln_gaudin_norm(ψ2)
+
+    return result_ln_norm, exp(im*result_angle) * im 
+end
+
+#"""
+#    form_factor of the field operator <ψ1|ψ(0)|ψ2>. ψ1 and ψ2 will be normalized.
+#    also correct. from T. Kojima, V. E Korepin, NA Slavnov, Comm. Math. Phys. 188, 657–689 (1997)
+#"""
+#function ψ0_form_factor1(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat})
+#    c, L = ψ1.c, ψ1.L
+#    N = length(ψ1.ns)
+#
+#    g(λ, μ) = im*c / (λ - μ)
+#    #f(λ, μ) = im*c / (λ - μ) + 1
+#    h(λ, μ) = (λ - μ + im*c) / (im*c)
+#    t(λ, μ) = g(λ, μ) / h(λ, μ)
+#    #a(λ) = exp(-im*L*λ / 2)
+#    #d(λ) = exp( im*L*λ / 2)
+#
+#    μs = ψ1.quasimomenta
+#    λs = ψ2.quasimomenta
+#
+#    detSs = zeros(ComplexF64, N+1)
+#    for l in 1:N+1 
+#        S = zeros(ComplexF64, (N, N))
+#        js = [1:l-1 ; l+1:N+1]
+#        for jx in 1:N 
+#            for k in 1:N
+#                j = js[jx]
+#                S[jx, k] = t(μs[k], λs[j]) / h(λs[N+1], λs[j]) *
+#                        prod([h(μs[ix], λs[j]) / h(λs[ix], λs[j]) for ix in 1:N]) - 
+#                           t(λs[j], μs[k]) / h(λs[j], λs[N+1]) *
+#                        prod([h(λs[j], μs[ix]) / h(λs[j], λs[ix]) for ix in 1:N])
+#            end
+#        end
+#        detSs[l] = det(S)
+#    end
+#    Mi = sum([(-1)^(ix-1) * detSs[ix] for ix in 1:N+1])
+#
+#    ln_norm_FN = log(norm(Mi))
+#    angle_FN = angle(Mi * exp(0.5*im*L*sum([μs; λs])) )
+#
+#    for m in 1:N+1
+#        for j in 1:N+1
+#            h_mj = h(λs[m], λs[j])
+#            ln_norm_FN += log(norm(h_mj)) 
+#            angle_FN += angle(h_mj)
+#        end
+#    end
+#
+#    for k in 1:N
+#        for j in k+1:N+1
+#            g_kj = g(λs[k], λs[j]) 
+#            (j < N+1) && (g_kj *= g(μs[j], μs[k]))
+#            ln_norm_FN += log(norm(g_kj))
+#            angle_FN += angle(g_kj)
+#        end
+#    end
+#
+#    phase_FN = -im * exp(im*angle_FN)
+#    ln_norm_FN += 0.5 * log(c)
+#
+#    ln_norm_FN -= ln_gaudin_norm(ψ1) + ln_gaudin_norm(ψ2) 
+#    return ln_norm_FN, phase_FN
+#end
