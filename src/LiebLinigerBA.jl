@@ -11,11 +11,12 @@ export  LLBAState,
         energy,
         momentum,
         update_state, 
-        ph_excitation,
-        ln_gaudin_norm, 
+        ph_excitation
+
+export  ln_gaudin_norm, 
         ln_ρ0_form_factor,
         ln_I0_form_factor,
-        ψ0_form_factor
+        ln_ψ0_form_factor
 
 export  get_mu,
         intermediate_states,
@@ -24,6 +25,7 @@ export  get_mu,
         threebody_wave_function
 
 include("ba_state.jl")
+include("norm_and_form_factors.jl")
 include("utils.jl")
 
 end

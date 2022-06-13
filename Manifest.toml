@@ -685,6 +685,12 @@ version = "0.1.1"
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[[TestExtras]]
+deps = ["InteractiveUtils", "Test"]
+git-tree-sha1 = "46fe481b7a56cc18efb67dda491683211da9c0ff"
+uuid = "5ed8adda-3752-4e41-b88a-e8b09835ee3a"
+version = "0.1.2"
+
 [[TranscodingStreams]]
 deps = ["Random", "Test"]
 git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"

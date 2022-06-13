@@ -1,6 +1,6 @@
+using Revise
 using LiebLinigerBA
-using Test
+using Test, TestExtras
+using LinearAlgebra, QuadGK, HCubature
 
-@testset "LiebLinigerBA.jl" begin
-    # Write your tests here.
-end
+include("test_norm_and_form_factors.jl")
