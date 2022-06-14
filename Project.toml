@@ -17,6 +17,7 @@ TestExtras = "5ed8adda-3752-4e41-b88a-e8b09835ee3a"
 JLD2 = "0.4"
 Plots = "1"
 QuadGK = "2"
+Revise = "3"
 julia = "1"
 
 [extras]
