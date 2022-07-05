@@ -97,6 +97,7 @@ end
 
     update a state `ψ` with new `ns`. 
     The quasimomenta of `ψ` will be used as initialization.
+    Return the updated new state. the original `ψ` won't be changed.
 """
 function update_state(ψ::LLBAState{T}, ns::Vector{<:Rational}) where T
     quasimomenta = copy(ψ.quasimomenta)

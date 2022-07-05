@@ -5,6 +5,7 @@ __precompile__(true)
 
 using LinearAlgebra
 using Combinatorics
+using Plots
 
 export  LLBAState,
         ground_state,
@@ -15,12 +16,15 @@ export  LLBAState,
 
 export  ln_gaudin_norm, 
         ln_ρ0_form_factor,
+        kacmoody,
         ln_I0_form_factor,
         ln_ψ0_form_factor
 
-export  get_mu,
+export  show_ph_excitations,
+        get_mu,
         intermediate_states,
-        Luttinger_parameter, 
+        Luttinger_parameter,
+        velocity, 
         twobody_wave_function,
         threebody_wave_function
 

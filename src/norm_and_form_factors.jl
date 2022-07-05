@@ -29,11 +29,16 @@ end
     Ref: J. De Nardis, M. Panfil, J. Stat. Mech. 2015, P02019 (2015)
 
     parameter `p` is a free parameter in the formula which will not affect the result.
+    target = :density or :current
 """
-function ln_ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0)
+function ln_ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:AbstractFloat}; p::Real=0, target=:density)
 
     if ψ1.ns == ψ2.ns
-        return log(length(ψ1.ns) / ψ1.L) 
+        if target == :density
+            return log(length(ψ1.ns) / ψ1.L), 1.0
+        elseif target == :current 
+            return log(abs(momentum(ψ1)) / ψ1.L), sign(momentum(ψ1))
+        end 
     end
 
     c = ψ1.c
@@ -74,11 +79,40 @@ function ln_ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:Ab
         result_angle += angle(vj)
     end
 
-    result_ln_norm += log(norm(sum(μs) - sum(λs)))
+    if target == :density
+        result_ln_norm += log(norm(sum(μs) - sum(λs)))
+        additional_sign = sign(sum(μs) - sum(λs))
+    elseif target == :current 
+        result_ln_norm += log(norm(sum(μs .^ 2) - sum(λs .^ 2)))
+        additional_sign = sign(sum(μs .^ 2) - sum(λs .^ 2))
+    end
+
     result_ln_norm -= ln_gaudin_norm(ψ1) + ln_gaudin_norm(ψ2)
 
     # here I have to add an additional phase factor -im, otherwise the result seems incorrect
-    return result_ln_norm, exp(im*result_angle) * sign(sum(μs) - sum(λs)) *(-im) 
+    return result_ln_norm, exp(im*result_angle) * additional_sign * (-im) 
+end
+
+"""
+    kacmoody(q::Integer, sector::Symbol, v::Real)
+
+    microscopic realization of the kacmoody generator j_{q}.
+    sector = :holomorphic, :antiholomorphic, :none
+"""
+function kacmoody(ϕ1::LLBAState{<:AbstractFloat}, ϕ2::LLBAState{<:AbstractFloat}, sector::Symbol, v::Real)
+    if length(ϕ1.ns) != length(ϕ2.ns)
+        return 0
+    end
+    if ϕ1.ns == ϕ2.ns
+        return 0
+    end
+
+    sgn = Float64((sector==:holomorphic) - (sector==:antiholomorphic))
+    lnnorm_ρ, phase_ρ = ln_ρ0_form_factor(ϕ1, ϕ2; target=:density)
+    lnnorm_j, phase_j = ln_ρ0_form_factor(ϕ1, ϕ2; target=:current)
+    ρ = exp(lnnorm_ρ) * phase_ρ 
+    j = exp(lnnorm_j) * phase_j 
+    return ϕ1.L * (v * ρ + sgn * j)  
 end
 
 """
@@ -186,6 +220,7 @@ function ln_ψ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:Ab
     # here I have to add an additional phase factor -im, otherwise the result seems incorrect
     return result_ln_norm, exp(im*result_angle) * im * (-im) 
 end
+
 
 #"""
 #    form_factor of the field operator <ψ1|ψ(0)|ψ2>. ψ1 and ψ2 will be normalized.

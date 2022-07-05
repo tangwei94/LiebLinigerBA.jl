@@ -1,4 +1,36 @@
 """
+    show_ph_excitations(ψ::LLBAState{<:AbstractFloat}, num::Integer; figname::String="unamed.pdf")
+
+    show the particle-hole excitation of a state `ψ`. `num` is the number of modes near the Fermi surface. the plot will be output to `figname`
+"""
+function show_ph_excitations(ψ::LLBAState{<:AbstractFloat}, num::Integer; figname::String="unamed.pdf")
+    colors = palette(:Greys_3, 2)
+
+    N = length(ψ.ns)
+    if N % 2 == 0
+        nF = -1//2 + N ÷ 2
+    else
+        nF = (N ÷ 2) // 1
+    end 
+
+    XR = (1:2*num+1) .* 0.1
+    YR = ones(2*num+1) .* 0
+    ZR = [Float64(ix in ψ.ns) for ix in nF-num:nF+num]
+    XL = (1:2*num+1) .* (-0.1)
+    YL = ones(2*num+1) .* 0
+    ZL = [Float64(ix in ψ.ns) for ix in -nF+num:-1:-nF-num]
+
+    scatter(0.02 .* [-1, 0, 1], [0,0,0], markersize=4, markerstrokewidth=0, markeralpha=0.6, color=colors[end], ylims=(-0.3, 0.3), legend=false, showaxis=([], false))
+    plot!(0.1 .* [num+1.5; num+1.5], [-0.125; 0.125], linecolor=colors[end], linestyle=:dash) 
+    plot!(0.1 .* [-num-1.5; -num-1.5], [-0.125; 0.125], linecolor=colors[end], linestyle=:dash, linealpha=0.6)    
+    scatter!(XR, YR, marker_z= ZR, markersize=16, markerstrokewidth=2, markerstrokealpha=0.3, markerstrokecolor=colors[end], markeralpha=0.6, color=colors)
+    scatter!(XL, YL, marker_z= ZL, markersize=16, markerstrokewidth=2, markerstrokealpha=0.3, markerstrokecolor=colors[end], markeralpha=0.6, color=colors)
+    annotate!((-0.1 * (num + 1), -0.175, text("L", 20, color=colors[end])))
+    annotate!((0.1 * (num + 1), -0.175, text("R", 20, color=colors[end])))
+    savefig(figname)
+end    
+
+"""
     ph_labels(n_particles::Integer, Δp::Integer)
 
     Generate a collection of labels for all possible particle-hole excitations:
@@ -74,6 +106,18 @@ function Luttinger_parameter(c::Real, L::Real, N::Integer)
     E_1p = energy(ψ_1p, μ)
 
     return (E1 - E0) / (E_1p - E0) / 4
+end
+
+function velocity(c::Real, L::Real, N::Integer)
+    μ = get_mu(c, L, N)
+
+    ψ0 = ground_state(c, L, N)
+    E0 = energy(ψ0, μ)
+    ψ1 = ph_excitation(ψ0, [0], [-1])
+    E1 = energy(ψ1, μ)
+
+    v = (E1 - E0) / (2*pi/L)
+    return v 
 end
 
 function twobody_wave_function(ψ::LLBAState{<:AbstractFloat})
