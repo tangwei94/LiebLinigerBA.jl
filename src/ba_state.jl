@@ -51,6 +51,7 @@ LLBAState(ns::Vector{<:Integer}, c::Real, L::Real) = LLBAState(Rational.(ns), c,
 LLBAState(ns::Vector{<:Integer}, quasimomenta::Vector{<:AbstractFloat}, c::Real, L::Real) = LLBAState(Rational.(ns), quasimomenta, c, L)
 
 energy(ψ::LLBAState{<:AbstractFloat}, μ::Real) = sum(ψ.quasimomenta .^ 2) - μ * length(ψ.ns)
+particle_number(ψ::LLBAState{<:AbstractFloat}) = length(ψ.ns)
 momentum(ψ::LLBAState{<:AbstractFloat}) = sum(ψ.quasimomenta) 
 
 """

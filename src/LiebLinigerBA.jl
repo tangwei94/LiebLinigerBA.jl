@@ -10,6 +10,7 @@ using Plots
 export  LLBAState,
         ground_state,
         energy,
+        particle_number,
         momentum,
         update_state, 
         ph_excitation
