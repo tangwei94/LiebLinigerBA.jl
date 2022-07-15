@@ -77,7 +77,7 @@ maximum(pnumbers)
 minimum(pnumbers)
 23-18
 
-#colors = cgrad(:Blues_3, 100, categorical = true)  
+colors = cgrad(:Blues_3, 100, categorical = true)  
 #scatter(momenta, scale_E.(energies), markersize=4, markerstrokewidth=0, markeralpha=0.6, color=colors[end], ylims=(0, 3.5), legend=false)
 #plot!(size=(300, 300))
 #savefig("ba_spect_full.pdf")
