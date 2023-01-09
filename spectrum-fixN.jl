@@ -56,12 +56,12 @@ function plot_spect(ax, ψi, ovlpsR, ovlpsL)
     return sc_main, sc_mappedR, sc_mappedL
 end
 
-fig = Figure(backgroundcolor = :white, resolution= (600, 400))
+fig = Figure(backgroundcolor = :white, fontsize=18, resolution= (600, 400))
 gf = fig[1, 1] = GridLayout() 
 gl = fig[2, 1] = GridLayout()
 
 ax1 = Axis(gf[1, 1], 
-        xlabel = L"p L / \pi",
+        xlabel = L"p L / 2\pi",
         ylabel = L"\text{rescaled } \Delta E", 
         xticks = -4:1:4,
         yticks = 0:1:4,
@@ -71,12 +71,11 @@ ylims!(ax1, (-0.15, 4.5))
 
 sc1_orig = scatter!(ax1, [0], [0], color=:gray50, marker=:star5, markersize=15, label=L"|\psi_{i}\rangle")
 sc1_main, sc1_mappedR, sc1_mappedL = plot_spect(ax1, ψ0, holomorphic_ovlps_gs, anti_holomorphic_ovlps_gs)
-#sc1_orig = scatter!(ax1, [0], [0], color=:gray50, marker=:star5, markersize=15, label=L"|\psi_{i}\rangle")
 
 @show fig
 
 ax2 = Axis(gf[1, 2], 
-        xlabel = L"p L / \pi",
+        xlabel = L"p L / 2\pi",
         #ylabel = L"\text{rescaled } \Delta E", 
         xticks = -4:1:4,
         yticks = 0:1:4,
@@ -98,7 +97,7 @@ end
 
 #axislegend(ax1, position=:lb, framevisible=false)
 
-leg = Legend(gl[1,1], ax1, orientation=:horizontal, framecolor=:lightgrey)
+leg = Legend(gl[1,1], ax1, orientation=:horizontal, framecolor=:lightgrey, labelsize=16)
 
 @show fig
 Makie.save("fig-ba-spect.pdf", fig)
