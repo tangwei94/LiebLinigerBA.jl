@@ -7,3 +7,4 @@ tmp*.jl
 tmpdata
 .CondaPkg
 JuliaSysimage.so
+fig-*.pdf
