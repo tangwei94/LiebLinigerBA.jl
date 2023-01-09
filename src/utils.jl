@@ -94,18 +94,15 @@ function get_mu(c::Real, L::Real, N::Integer)
     return (E2 - E1) / 2
 end
 
-function Luttinger_parameter(c::Real, L::Real, N::Integer)
-    μ = get_mu(c, L, N)
-
+function v_and_K(c::Real, L::Real, N::Integer)
     ψ0 = ground_state(c, L, N)
-    E0 = energy(ψ0, μ)
-    ψ1 = ph_excitation(ψ0, [0], [-1])
-    E1 = energy(ψ1, μ)
+    E0 = energy(ψ0)
+    Eph1 = energy(ph_excitation(ψ0, [0], [-1]))
+    v = (Eph1 - E0) / (2*pi/L)
+    vJ = 2*pi*(N/L)
+    K = vJ / v
 
-    ψ_1p = ground_state(c, L, N+1)
-    E_1p = energy(ψ_1p, μ)
-
-    return (E1 - E0) / (E_1p - E0) / 4
+    return v, K
 end
 
 function velocity(c::Real, L::Real, N::Integer)

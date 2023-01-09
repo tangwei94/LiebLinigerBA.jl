@@ -24,7 +24,7 @@ export  ln_gaudin_norm,
 export  show_ph_excitations,
         get_mu,
         intermediate_states,
-        Luttinger_parameter,
+        v_and_K,
         velocity, 
         twobody_wave_function,
         threebody_wave_function

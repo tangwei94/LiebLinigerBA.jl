@@ -99,7 +99,7 @@ end
     microscopic realization of the kacmoody generator j_{q}.
     sector = :holomorphic, :antiholomorphic, :none
 """
-function kacmoody(ϕ1::LLBAState{<:AbstractFloat}, ϕ2::LLBAState{<:AbstractFloat}, sector::Symbol, v::Real)
+function kacmoody(ϕ1::LLBAState{<:AbstractFloat}, ϕ2::LLBAState{<:AbstractFloat}, sector::Symbol, v::Real, K::Real)
     if length(ϕ1.ns) != length(ϕ2.ns)
         return 0
     end
@@ -112,7 +112,7 @@ function kacmoody(ϕ1::LLBAState{<:AbstractFloat}, ϕ2::LLBAState{<:AbstractFloa
     lnnorm_j, phase_j = ln_ρ0_form_factor(ϕ1, ϕ2; target=:current)
     ρ = exp(lnnorm_ρ) * phase_ρ 
     j = exp(lnnorm_j) * phase_j 
-    return ϕ1.L * (v * ρ + sgn * j)  
+    return ϕ1.L * (ρ + (sgn/v) * j) / sqrt(K) / 2 
 end
 
 """
