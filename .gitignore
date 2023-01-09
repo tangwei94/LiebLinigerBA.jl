@@ -6,4 +6,4 @@
 tmp*.jl
 tmpdata
 .CondaPkg
-.JuliaSysimage.so
+JuliaSysimage.so
