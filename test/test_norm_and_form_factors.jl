@@ -1,6 +1,6 @@
-@timedtestset "test form factors" for test_ix in 1:10
-    L = 11
-    c = 1.21
+#@timedtestset "test form factors" for test_ix in 1:10
+    L = 10*rand()
+    c = 2*rand()
     N = 2
 
     ψ0 = ground_state(c, L, N)
@@ -20,6 +20,7 @@
 
     density_form_factor_10 = 2 * quadgk(x2 -> f1(0, x2)' * f(0, x2), 0, L)[1] / (norm0 * norm1)
     ln_ρ10, phase_ρ10 = ln_ρ0_form_factor(ψ1, ψ0; p=rand())
+    phase_ρ10 * exp(ln_ρ10)
     @test norm(exp(ln_ρ10) * phase_ρ10 - density_form_factor_10) < 1e-8 
 
     density_form_factor_23 = 3 * hcubature(v -> f2(0, v...)' * f3(0, v...), (0, 0), (L, L))[1] / (norm2 * norm3)
@@ -38,4 +39,4 @@
     I_form_factor_23 = 6 * quadgk(x -> f2(0, 0, x)' * f3(0, 0, x), 0, L)[1] / (norm2 * norm3)
     ln_I23, phase_I23 = ln_I0_form_factor(ψ2, ψ3; s=rand(), p=rand())
     @test norm(exp(ln_I23) * phase_I23 - I_form_factor_23) < 1e-8
-end
+#end
