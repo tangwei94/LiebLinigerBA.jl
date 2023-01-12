@@ -51,8 +51,8 @@ function plot_spect(ax, ψi, ovlpsR, ovlpsL)
     colorL = :mediumpurple
 
     sc_main = scatter!(ax, momenta[msk_0] .* L ./ (2*pi), scale_E.(energies[msk_0]), color=:darkorange, marker=:circle, markersize=10)
-    sc_mappedR = scatter!(ax, momenta[msk_R] .* L ./ (2*pi), scale_E.(energies[msk_R]), color=colorR, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } L_{n}")
-    sc_mappedL = scatter!(ax, momenta[msk_L] .* L ./ (2*pi), scale_E.(energies[msk_L]), color=colorL, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } \bar{L}_{n}")
+    sc_mappedR = scatter!(ax, momenta[msk_R] .* L ./ (2*pi), scale_E.(energies[msk_R]), color=colorR, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } J_{n}")
+    sc_mappedL = scatter!(ax, momenta[msk_L] .* L ./ (2*pi), scale_E.(energies[msk_L]), color=colorL, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } \bar{J}_{n}")
     return sc_main, sc_mappedR, sc_mappedL
 end
 
