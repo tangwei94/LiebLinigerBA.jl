@@ -42,18 +42,22 @@ holomorphic_ovlps_1 = [kacmoody(ψi, ψ1, :holomorphic, v, K) for ψi in states]
 anti_holomorphic_ovlps_1l = [kacmoody(ψi, ψ1, :antiholomorphic, v, K) for ψi in states]
 
 function plot_spect(ax, ψi, ovlpsR, ovlpsL)
-    msk_R = norm.(ovlpsR) .> 0.6
-    msk_L = norm.(ovlpsL) .> 0.6
+    msk_Rp = real.(ovlpsR) .> 0.6
+    msk_Lp = real.(ovlpsL) .> 0.6
+    msk_Rm = real.(ovlpsR) .< -0.6
+    msk_Lm = real.(ovlpsL) .< -0.6
     msk_i = isapprox.(energies, energy(ψi)) .& isapprox.(momenta .+ 0.1, momentum(ψi)+ 0.1)  
-    msk_0 = .~(msk_R .| msk_L .| msk_i)
-    
-    colorR = :royalblue
-    colorL = :mediumpurple
+    msk_0 = .~(msk_Rp .| msk_Rm .| msk_Lp .| msk_Lm .| msk_i)
+
+    colorp = :royalblue
+    colorm = :mediumpurple
 
     sc_main = scatter!(ax, momenta[msk_0] .* L ./ (2*pi), scale_E.(energies[msk_0]), color=:darkorange, marker=:circle, markersize=10)
-    sc_mappedR = scatter!(ax, momenta[msk_R] .* L ./ (2*pi), scale_E.(energies[msk_R]), color=colorR, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } J_{n}")
-    sc_mappedL = scatter!(ax, momenta[msk_L] .* L ./ (2*pi), scale_E.(energies[msk_L]), color=colorL, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } \bar{J}_{n}")
-    return sc_main, sc_mappedR, sc_mappedL
+    sc_mappedRp = scatter!(ax, momenta[msk_Rp] .* L ./ (2*pi), scale_E.(energies[msk_Rp]), color=colorp, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } J_{n}")
+    sc_mappedRm = scatter!(ax, momenta[msk_Rm] .* L ./ (2*pi), scale_E.(energies[msk_Rm]), color=colorm, marker=:diamond, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } \bar{J}_{n}")
+    sc_mappedLp = scatter!(ax, momenta[msk_Lp] .* L ./ (2*pi), scale_E.(energies[msk_Lp]), color=colorp, marker=:rect, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } J_{n}")
+    sc_mappedLm = scatter!(ax, momenta[msk_Lm] .* L ./ (2*pi), scale_E.(energies[msk_Lm]), color=colorm, marker=:rect, markersize=10, label=L"\text{mapped from } |\psi_i\rangle \text{ with } \bar{J}_{n}")
+    return sc_main, sc_mappedRp, sc_mappedRm, sc_mappedLp, sc_mappedLm
 end
 
 fig = Figure(backgroundcolor = :white, fontsize=18, resolution= (600, 400))
@@ -70,7 +74,7 @@ ax1 = Axis(gf[1, 1],
 ylims!(ax1, (-0.15, 4.5))
 
 sc1_orig = scatter!(ax1, [0], [0], color=:gray50, marker=:star5, markersize=15, label=L"|\psi_{i}\rangle")
-sc1_main, sc1_mappedR, sc1_mappedL = plot_spect(ax1, ψ0, holomorphic_ovlps_gs, anti_holomorphic_ovlps_gs)
+sc1_main, sc1_mappedRp, sc1_mappedRm, sc1_mappedLp, sc1_mappedLm = plot_spect(ax1, ψ0, holomorphic_ovlps_gs, anti_holomorphic_ovlps_gs)
 
 @show fig
 
@@ -83,7 +87,7 @@ ax2 = Axis(gf[1, 2],
 
 ylims!(ax2, (-0.15, 4.5))
 
-sc2_main, sc2_mappedR, sc2_mappedL = plot_spect(ax2, ψ1, holomorphic_ovlps_1, anti_holomorphic_ovlps_1l)
+sc2_main, sc2_mappedRp, sc2_mappedRm, sc2_mappedLp, sc2_mappedLm  = plot_spect(ax2, ψ1, holomorphic_ovlps_1, anti_holomorphic_ovlps_1l)
 sc2_orig = scatter!(ax2, [1], [scale_E(energy(ψ1))], color=:gray50, marker=:star5, markersize=15)
 
 @show fig
