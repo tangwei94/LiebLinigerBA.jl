@@ -69,7 +69,7 @@ function ln_ρ0_form_factor(ψ1::LLBAState{<:AbstractFloat}, ψ2::LLBAState{<:Ab
         end
     end
 
-    result = det(Id_p_U) / (fpV(p) - fmV(p)) 
+    result = det(Id_p_U) / (fpV(p) - fmV(p))
     result_ln_norm = log(norm(result))
     result_angle = angle(result)
 
@@ -99,7 +99,7 @@ end
     microscopic realization of the kacmoody generator j_{q}.
     sector = :holomorphic, :antiholomorphic, :none
 """
-function kacmoody(ϕ1::LLBAState{<:AbstractFloat}, ϕ2::LLBAState{<:AbstractFloat}, sector::Symbol, v::Real, K::Real)
+function kacmoody(ϕ1::LLBAState{<:AbstractFloat}, ϕ2::LLBAState{<:AbstractFloat}, sector::Symbol, v::Real, K::Real; p=0.123321)
     if length(ϕ1.ns) != length(ϕ2.ns)
         return 0
     end
@@ -108,8 +108,8 @@ function kacmoody(ϕ1::LLBAState{<:AbstractFloat}, ϕ2::LLBAState{<:AbstractFloa
     end
 
     sgn = Float64((sector==:holomorphic) - (sector==:antiholomorphic))
-    lnnorm_ρ, phase_ρ = ln_ρ0_form_factor(ϕ1, ϕ2; target=:density)
-    lnnorm_j, phase_j = ln_ρ0_form_factor(ϕ1, ϕ2; target=:current)
+    lnnorm_ρ, phase_ρ = ln_ρ0_form_factor(ϕ1, ϕ2; target=:density, p=p)
+    lnnorm_j, phase_j = ln_ρ0_form_factor(ϕ1, ϕ2; target=:current, p=p)
     ρ = exp(lnnorm_ρ) * phase_ρ 
     j = exp(lnnorm_j) * phase_j 
     return ϕ1.L * (ρ + (sgn/v) * j) / sqrt(K) / 2 
