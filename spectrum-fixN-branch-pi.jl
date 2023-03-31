@@ -72,8 +72,8 @@ function plot_spect(ax, ψi, ovlpsR, ovlpsL)
     return sc_main, sc_mappedRp, sc_mappedRm, sc_mappedLp, sc_mappedLm
 end
 
-font1 = Makie.to_font("/home/wtang/.local/share/fonts/STIXTwoText-Regular.otf")
-fig = Figure(backgroundcolor = :white, fontsize=18, resolution= (600, 425), fonts=(; regular=font1))
+#font1 = Makie.to_font("/home/wtang/.local/share/fonts/STIXTwoText-Regular.otf")
+fig = Figure(backgroundcolor = :white, fontsize=18, resolution= (600, 425))#, fonts=(; regular=font1))
 gf = fig[1, 1] = GridLayout() 
 gl = fig[2, 1] = GridLayout()
 

@@ -1,4 +1,4 @@
-#@timedtestset "test form factors" for test_ix in 1:10
+@timedtestset "test form factors" for test_ix in 1:10
     L = 10*rand()
     c = 2*rand()
     N = 2
@@ -39,4 +39,4 @@
     I_form_factor_23 = 6 * quadgk(x -> f2(0, 0, x)' * f3(0, 0, x), 0, L)[1] / (norm2 * norm3)
     ln_I23, phase_I23 = ln_I0_form_factor(ψ2, ψ3; s=rand(), p=rand())
     @test norm(exp(ln_I23) * phase_I23 - I_form_factor_23) < 1e-8
-#end
+end
